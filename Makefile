@@ -20,3 +20,4 @@ binding: deps
 	$(GO_BINARY) build -ldflags="-w -s $(EXTRA_LD_FLAGS)" -o $(BINDING_OUTPUT)/$(BINDING_FILE) -buildmode=$(BUILD_MODE) $(BINDING_ARGS) binding/main.go
 
 include Makefile.android
+include Makefile.ios

@@ -1,15 +1,8 @@
 package main
 
-/*
-#include <stdint.h>
-#include <stdio.h>
-#include <stdlib.h>
-typedef struct  { void* message; int size; char* error; } GoResponse;
-
-GoResponse* Encode(char*);
-char* Decode(void* ptr, int length);
-
-*/
+//#include <stdint.h>
+//#include <stdlib.h>
+//typedef struct  { void* message; int size; char* error; } GoResponse;
 import "C"
 import (
 	"encoder"
@@ -29,11 +22,10 @@ func Encode(message *C.char) *C.GoResponse {
 }
 
 //export Decode
-func Decode(ptr unsafe.Pointer, length C.int) *C.char {
-	data := C.GoBytes(ptr, length)
-    result := encoder.Decode(data)
+func Decode(ptr unsafe.Pointer, length C.int, enc *C.char, index C.int, stream C.int) *C.char {
+    data := C.GoBytes(ptr, length)
+    result := encoder.Decode(data, C.GoString(enc), int(index), int(stream))
 	decodedCString := C.CString(result)
-
 	// Memory is freed on caller side
 	return decodedCString
 }
