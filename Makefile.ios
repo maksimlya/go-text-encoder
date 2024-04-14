@@ -1,22 +1,36 @@
 IOS_OUTPUT?=ios
 IOS_BINDING_OUTPUT?=$(BINDING_OUTPUT)/$(IOS_OUTPUT)
 
-binding_ios: binding_ios_arm64 binding_ios_x86_64
-	lipo $(IOS_BINDING_OUTPUT)/x86_64.a $(IOS_BINDING_OUTPUT)/arm64.a -create -output $(IOS_BINDING_OUTPUT)/$(BINDING_NAME).a
-	cp $(IOS_BINDING_OUTPUT)/arm64.h $(IOS_BINDING_OUTPUT)/$(BINDING_NAME).h
-	rm $(IOS_BINDING_OUTPUT)/arm64.h $(IOS_BINDING_OUTPUT)/arm64.a $(IOS_BINDING_OUTPUT)/x86_64.h $(IOS_BINDING_OUTPUT)/x86_64.a
+binding_ios: binding_ios_arm64 binding_ios_x86_64_sim binding_ios_arm64_sim
+	lipo  -create $(IOS_BINDING_OUTPUT)/arm64_sim.a $(IOS_BINDING_OUTPUT)/x86_64.a -output $(IOS_BINDING_OUTPUT)/$(BINDING_NAME).a
+	mkdir $(IOS_BINDING_OUTPUT)/include
+	cp $(IOS_BINDING_OUTPUT)/arm64_sim.h $(IOS_BINDING_OUTPUT)/include/$(BINDING_NAME).h
+	rm $(IOS_BINDING_OUTPUT)/arm64_sim.a $(IOS_BINDING_OUTPUT)/arm64_sim.h $(IOS_BINDING_OUTPUT)/x86_64.a $(IOS_BINDING_OUTPUT)/x86_64.h
 
-binding_ios_arm64:
-	BINDING_FILE=$(IOS_OUTPUT)/arm64.a BUILD_MODE="c-archive" \
-	SDK=iphoneos CC=$(PWD)/clangwrap.sh CGO_CFLAGS="-fembed-bitcode" \
+binding_ios_arm64_sim:
+	BINDING_FILE=$(IOS_OUTPUT)/arm64_sim.a BUILD_MODE="c-archive" \
+	SDK=iphonesimulator CC=$(PWD)/clangwrap.sh \
 	GOOS=ios GOARCH=arm64 CGO_ENABLED=1 \
 	make binding
 
-binding_ios_x86_64:
+binding_ios_x86_64_sim:
 	BINDING_FILE=$(IOS_OUTPUT)/x86_64.a BUILD_MODE="c-archive" \
 	SDK=iphonesimulator CC=$(PWD)/clangwrap.sh \
 	GOOS=ios GOARCH=amd64 CGO_ENABLED=1 \
 	make binding
+
+binding_ios_arm64:
+	BINDING_FILE=$(IOS_OUTPUT)/device/$(BINDING_NAME).a BUILD_MODE="c-archive" \
+	SDK=iphoneos CC=$(PWD)/clangwrap.sh CGO_CFLAGS="-fembed-bitcode" \
+	GOOS=ios GOARCH=arm64 CGO_ENABLED=1 \
+	make binding
+
+bundle:
+	rm -rf $(IOS_BINDING_OUTPUT)/report
+	xcodebuild -create-xcframework \
+	-library $(IOS_BINDING_OUTPUT)/$(BINDING_NAME).a -headers $(IOS_BINDING_OUTPUT)/include \
+	-library $(IOS_BINDING_OUTPUT)/device/$(BINDING_NAME).a -headers $(IOS_BINDING_OUTPUT)/include \
+	-output $(IOS_BINDING_OUTPUT)/report/nativeUtils.xcframework
 
 copy-ios:
 	cp -r output/binding/ios/libnative_utils_bridge.a ../ios/librnnativeutils_bridge.a

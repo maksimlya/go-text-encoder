@@ -15,4 +15,10 @@ elif [ "$GOARCH" == "386" ]; then
     CARCH="i386"
 fi
 
-exec $CLANG -arch $CARCH -isysroot $SDK_PATH -mios-version-min=10.0 "$@"
+if [ "$SDK" == "iphoneos" ]; then
+    TARGET="-target $CARCH-apple-ios10.0"
+elif [ "$SDK" == "iphonesimulator" ]; then
+    TARGET="-target $CARCH-apple-ios10.0-simulator"
+fi
+
+exec $CLANG -arch $CARCH $TARGET -isysroot $SDK_PATH -mios-version-min=10.0 "$@"
