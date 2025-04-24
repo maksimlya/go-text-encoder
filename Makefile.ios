@@ -28,9 +28,10 @@ binding_ios_arm64:
 bundle:
 	rm -rf $(IOS_BINDING_OUTPUT)/report
 	xcodebuild -create-xcframework \
-	-library $(IOS_BINDING_OUTPUT)/$(BINDING_NAME).a -headers $(IOS_BINDING_OUTPUT)/include \
-	-library $(IOS_BINDING_OUTPUT)/device/$(BINDING_NAME).a -headers $(IOS_BINDING_OUTPUT)/include \
+	-library $(IOS_BINDING_OUTPUT)/$(BINDING_NAME).a \
+	-library $(IOS_BINDING_OUTPUT)/device/$(BINDING_NAME).a \
 	-output $(IOS_BINDING_OUTPUT)/report/nativeUtils.xcframework
+	cp -r $(IOS_BINDING_OUTPUT)/include/ $(IOS_BINDING_OUTPUT)/report/nativeUtils.xcframework/Headers
 
 copy-ios:
 	cp -r output/binding/ios/libnative_utils_bridge.a ../ios/librnnativeutils_bridge.a
